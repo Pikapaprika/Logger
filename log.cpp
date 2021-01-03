@@ -5,6 +5,12 @@
 #include <iomanip>
 #include <iostream>
 #include <memory>
+#include <cerrno>
+#include <cstring>
+
+LogType Logger::loglevel_ = LogType::Info;
+std::string Logger::logdir_;
+std::ofstream Logger::fstream_;
 
 Logger& Logger::Info() {
     static Logger info{LogType::Info};
@@ -20,10 +26,6 @@ Logger& Logger::Warn() {
     static Logger warn{LogType::Warn};
     return warn;
 }
-
-LogType Logger::loglevel_ = LogType::Info;
-std::string Logger::logdir_;
-std::ofstream Logger::fstream_;
 
 Logger::Logger(LogType type) : type_{type}, flushAfter_{1}, lineCount_{0}, nextLine_{true} {}
 
@@ -48,8 +50,10 @@ std::ostream& operator<<(std::ostream& strm, LogType type) {
     }
 };
 
-
 Logger& Logger::operator<<(const std::string& message) {
+    if(!logfileIsOpen()) {
+        newLogfile();
+    }
     if (this->type_ >= loglevel_) {
         std::size_t pos = message.find('\n');
         if (pos != std::string::npos) {
@@ -89,7 +93,6 @@ void Logger::writeMessage(const std::string& message) {
     }
 }
 
-
 bool Logger::shouldFlush() const { return lineCount_ >= flushAfter_; }
 
 std::string Logger::getDateString(const std::string& separator) {
@@ -125,7 +128,7 @@ std::string Logger::newLogfile() {
     fstream_.open(filePath, std::ios::out);
     if (!fstream_.good()) {
         fstream_.close();
-        return "";
+        throw file_open_exception(strerror(errno));
     }
 
     return filePath;
@@ -136,12 +139,8 @@ LogType Logger::getLoglevel() { return Logger::loglevel_; }
 void Logger::setLoglevel(LogType loglevel) { Logger::loglevel_ = loglevel; }
 
 void Logger::flushBuffer() {
-    // fstream_ << buffer_.str();
+    fstream_ << buffer_.str();
     std::cout << buffer_.str();
     buffer_.str(std::string());
     lineCount_ = 0;
 }
-
-// TODO: Fall-Mehrfach \n in message
-// TODO: Error handling
-// TODO: Nur numersche Typen u. Strings akzeptieren

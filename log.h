@@ -17,6 +17,11 @@ enum class LogType {
     Info = 0, Warn = 1, Error = 2
 };
 
+class file_open_exception : public std::runtime_error{
+public:
+    explicit file_open_exception(const char* message) : std::runtime_error(message){};
+};
+
 std::ostream& operator<<(std::ostream& strm, LogType type);
 
 class Logger {
@@ -41,7 +46,10 @@ public:
 
     template<typename T>
     Logger& operator<<(const T& message) {
-        static_assert(std::is_arithmetic<T>::value);
+        static_assert(std::is_arithmetic<T>::value, "T needs to be arithmetic or std::string.");
+        if(!logfileIsOpen()) {
+            newLogfile();
+        }
         if (this->type_ >= loglevel_) {
             writeMessage(std::to_string(message));
         }
