@@ -29,7 +29,7 @@ Logger& Logger::Warn() {
 
 Logger::Logger(LogType type) : type_{type}, flushAfter_{1}, lineCount_{0}, nextLine_{true} {}
 
-int Logger::flushAfter() const { return flushAfter_; }
+int Logger::getFlushAfter() const { return flushAfter_; }
 
 void Logger::setFlushAfter(int flushAfter) { flushAfter_ = flushAfter; }
 
@@ -140,7 +140,6 @@ void Logger::setLoglevel(LogType loglevel) { Logger::loglevel_ = loglevel; }
 
 void Logger::flushBuffer() {
     fstream_ << buffer_.str();
-    std::cout << buffer_.str();
     buffer_.str(std::string());
     lineCount_ = 0;
 }

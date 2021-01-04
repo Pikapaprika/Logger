@@ -9,17 +9,13 @@
 #include <iostream>
 #include <sstream>
 
-#define LogError Logger::Error()
-#define LogInfo Logger::Info()
-#define LogWarn Logger::Warn()
-
 enum class LogType {
     Info = 0, Warn = 1, Error = 2
 };
 
-class file_open_exception : public std::runtime_error{
+class file_open_exception : public std::runtime_error {
 public:
-    explicit file_open_exception(const char* message) : std::runtime_error(message){};
+    explicit file_open_exception(const char* message) : std::runtime_error(message) {};
 };
 
 std::ostream& operator<<(std::ostream& strm, LogType type);
@@ -40,14 +36,14 @@ public:
 
     static Logger& Info();
 
-    static void setLoglevel(LogType loglevel);
-
     static LogType getLoglevel();
+
+    static void setLoglevel(LogType loglevel);
 
     template<typename T>
     Logger& operator<<(const T& message) {
         static_assert(std::is_arithmetic<T>::value, "T needs to be arithmetic or std::string.");
-        if(!logfileIsOpen()) {
+        if (!logfileIsOpen()) {
             newLogfile();
         }
         if (this->type_ >= loglevel_) {
@@ -66,7 +62,7 @@ public:
 
     static void setLogdir(const std::string& logdir);
 
-    int flushAfter() const;
+    int getFlushAfter() const;
 
     void setFlushAfter(int flushAfter);
 
@@ -79,21 +75,22 @@ private:
 
     static std::string getTimeString(const std::string& separator);
 
+    static std::string getLocaltime(const std::string& format);
+
     static LogType loglevel_;
     static std::ofstream fstream_;
+    static std::string logdir_;
+
     std::stringstream buffer_;
     LogType type_;
     int flushAfter_;
-    static std::string logdir_;
+
+    int lineCount_;
+    bool nextLine_;
 
     void flushBuffer();
 
     void writeMessage(const std::string& message);
-
-    static std::string getLocaltime(const std::string& format);
-
-    int lineCount_;
-    bool nextLine_;
 
     bool shouldFlush() const;
 
