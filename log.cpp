@@ -77,7 +77,7 @@ Logger& Logger::operator<<(const std::string& message) {
 }
 
 Logger& Logger::operator<<(const char* message) {
-    return *this << (std::string(message));
+    return *this << std::string(message);
 }
 
 void Logger::writeMessage(const std::string& message) {
