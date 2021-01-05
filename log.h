@@ -62,28 +62,28 @@ public:
 
     static void setLogdir(const std::string& logdir);
 
-    int getFlushAfter() const;
+    int getFlushThreshold() const;
 
-    void setFlushAfter(int flushAfter);
+    void setFlushThreshold(int flushThreshold);
 
     static bool logfileIsOpen();
 
 private:
     explicit Logger(LogType type);
-
+    /*
     static std::string getDateString(const std::string& separator);
 
     static std::string getTimeString(const std::string& separator);
 
     static std::string getLocaltime(const std::string& format);
-
+    */
     static LogType loglevel_;
     static std::ofstream fstream_;
     static std::string logdir_;
 
     std::stringstream buffer_;
     LogType type_;
-    int flushAfter_;
+    int flushThreshold_;
 
     int lineCount_;
     bool nextLine_;

@@ -7,6 +7,7 @@
 #include <memory>
 #include <cerrno>
 #include <cstring>
+#include "log_utils.h"
 
 LogType Logger::loglevel_ = LogType::Info;
 std::string Logger::logdir_;
@@ -27,11 +28,11 @@ Logger& Logger::Warn() {
     return warn;
 }
 
-Logger::Logger(LogType type) : type_{type}, flushAfter_{1}, lineCount_{0}, nextLine_{true} {}
+Logger::Logger(LogType type) : type_{type}, flushThreshold_{0}, lineCount_{0}, nextLine_{true} {}
 
-int Logger::getFlushAfter() const { return flushAfter_; }
+int Logger::getFlushThreshold() const { return flushThreshold_; }
 
-void Logger::setFlushAfter(int flushAfter) { flushAfter_ = flushAfter; }
+void Logger::setFlushThreshold(int flushThreshold) { flushThreshold_ = flushThreshold; }
 
 std::string Logger::getLogdir() { return logdir_; }
 
@@ -51,7 +52,7 @@ std::ostream& operator<<(std::ostream& strm, LogType type) {
 };
 
 Logger& Logger::operator<<(const std::string& message) {
-    if(!logfileIsOpen()) {
+    if (!logfileIsOpen()) {
         newLogfile();
     }
     if (this->type_ >= loglevel_) {
@@ -82,7 +83,7 @@ Logger& Logger::operator<<(const char* message) {
 
 void Logger::writeMessage(const std::string& message) {
     if (nextLine_) {
-        buffer_ << getDateString("-") << " " << getTimeString(":") << " "
+        buffer_ << LogUtils::getDateString("-") << " " << LogUtils::getTimeString(":") << " "
                 << this->type_ << " ";
 
         nextLine_ = false;
@@ -93,8 +94,9 @@ void Logger::writeMessage(const std::string& message) {
     }
 }
 
-bool Logger::shouldFlush() const { return lineCount_ >= flushAfter_; }
+bool Logger::shouldFlush() const { return lineCount_ > flushThreshold_; }
 
+/*
 std::string Logger::getDateString(const std::string& separator) {
     std::stringstream formatStream;
     formatStream << "%Y" << separator << "%m" << separator << "%d";
@@ -114,12 +116,13 @@ std::string Logger::getLocaltime(const std::string& format) {
     timestream << std::put_time(std::localtime(&now_tt), format.c_str());
     return timestream.str();
 }
+*/
 
 bool Logger::logfileIsOpen() { return fstream_.is_open(); }
 
 std::string Logger::newLogfile() {
     std::string filePath = (logdir_.empty() ? "" : logdir_ + "/") +
-                           getDateString("") + getTimeString("") +
+                           LogUtils::getDateString("") + LogUtils::getTimeString("") +
                            ".log.txt";
     if (logfileIsOpen()) {
         fstream_.close();

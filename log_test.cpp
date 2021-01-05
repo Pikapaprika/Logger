@@ -2,8 +2,9 @@
 // Created by manuel on 03.01.21.
 //
 #include <gtest/gtest.h>
-#include <fstream>
 #include "log.h"
+#include "log_utils.h"
+#include <sstream>
 #include <experimental/filesystem>
 
 namespace fs = std::experimental::filesystem;
@@ -13,6 +14,10 @@ class LogTest : public ::testing::Test {
 protected:
     void SetUp() override {
         Logger::setLogdir(test_log_dir);
+        Logger::setLoglevel(LogType::Info);
+        Logger::Error().setFlushThreshold(0);
+        Logger::Info().setFlushThreshold(0);
+        Logger::Warn().setFlushThreshold(0);
     }
 
 public:
@@ -80,6 +85,19 @@ TEST_F(LogTest, logFileOpenTestShouldBeClosed) {
     }
     ASSERT_FALSE(Logger::logfileIsOpen());
 }
+
+TEST_F(LogTest, shiftOperatorTestShouldWriteCorrectDatetime) {
+    std::string message("This is an Error message.");
+    std::string path = Logger::newLogfile();
+    Logger::Error() << message << "\n";
+    std::ifstream logfile(path);
+    ASSERT_TRUE(logfile.good());
+    std::string line;
+    logfile >> line;
+    std::istringstream wordStrm(line);
+    wordStrm >> line;
+}
+
 
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
