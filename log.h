@@ -70,13 +70,7 @@ public:
 
 private:
     explicit Logger(LogType type);
-    /*
-    static std::string getDateString(const std::string& separator);
 
-    static std::string getTimeString(const std::string& separator);
-
-    static std::string getLocaltime(const std::string& format);
-    */
     static LogType loglevel_;
     static std::ofstream fstream_;
     static std::string logdir_;

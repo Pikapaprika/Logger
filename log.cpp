@@ -96,28 +96,6 @@ void Logger::writeMessage(const std::string& message) {
 
 bool Logger::shouldFlush() const { return lineCount_ > flushThreshold_; }
 
-/*
-std::string Logger::getDateString(const std::string& separator) {
-    std::stringstream formatStream;
-    formatStream << "%Y" << separator << "%m" << separator << "%d";
-    return getLocaltime(formatStream.str());
-}
-
-std::string Logger::getTimeString(const std::string& separator) {
-    std::stringstream formatStream;
-    formatStream << "%H" << separator << "%M" << separator << "%S";
-    return getLocaltime(formatStream.str());
-}
-
-std::string Logger::getLocaltime(const std::string& format) {
-    auto now = std::chrono::system_clock::now();
-    time_t now_tt = std::chrono::system_clock::to_time_t(now);
-    std::stringstream timestream;
-    timestream << std::put_time(std::localtime(&now_tt), format.c_str());
-    return timestream.str();
-}
-*/
-
 bool Logger::logfileIsOpen() { return fstream_.is_open(); }
 
 std::string Logger::newLogfile() {
