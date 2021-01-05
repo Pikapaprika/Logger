@@ -4,7 +4,9 @@
 
 #ifndef LOGGER_LOG_UTILS_H
 #define LOGGER_LOG_UTILS_H
+
 #include <chrono>
+
 class LogUtils {
 public:
     static std::string getDateString(const std::string& separator) {
@@ -21,10 +23,14 @@ public:
 
 private:
     LogUtils() = delete;
+
     LogUtils(const LogUtils&) = delete;
+
     LogUtils(LogUtils&&) = delete;
-    void operator=(const LogUtils&) =delete;
-    void operator=(LogUtils&&)=delete;
+
+    void operator=(const LogUtils&) = delete;
+
+    void operator=(LogUtils&&) = delete;
 
     static std::string getLocaltime(const std::string& format) {
         auto now = std::chrono::system_clock::now();
@@ -34,4 +40,5 @@ private:
         return timestream.str();
     }
 };
+
 #endif //LOGGER_LOG_UTILS_H
