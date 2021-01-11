@@ -6,8 +6,6 @@
 #include <sstream>
 #include <experimental/filesystem>
 #include "../log_utils.h"
-#include <chrono>
-#include <ctime>
 
 namespace fs = std::experimental::filesystem;
 const std::string test_log_dir("test_logs");

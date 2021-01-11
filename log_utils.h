@@ -6,9 +6,16 @@
 #define LOGGER_LOG_UTILS_H
 
 #include <chrono>
+#include <iomanip>
+#include "unistd.h"
 
 class LogUtils {
 public:
+
+    static bool fileExists(const std::string& path) {
+        return access(path.c_str(), F_OK) == 0;
+    }
+
     static std::string getDateString(const std::string& separator) {
         std::stringstream formatStream;
         formatStream << "%Y" << separator << "%m" << separator << "%d";
@@ -22,16 +29,6 @@ public:
     }
 
 private:
-    LogUtils() = delete;
-
-    LogUtils(const LogUtils&) = delete;
-
-    LogUtils(LogUtils&&) = delete;
-
-    void operator=(const LogUtils&) = delete;
-
-    void operator=(LogUtils&&) = delete;
-
     static std::string getLocaltime(const std::string& format) {
         auto now = std::chrono::system_clock::now();
         time_t now_tt = std::chrono::system_clock::to_time_t(now);

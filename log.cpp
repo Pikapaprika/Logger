@@ -142,6 +142,7 @@ void Logger::flushBuffer() {
     fstream_ << content;
     if (!fstream_.good()) {
         std::cout << strerror(errno) << "\n";
+        fstream_.clear();
     }
     buffer_.str(std::string());
     lineCount_ = 0;
