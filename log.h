@@ -66,7 +66,14 @@ public:
 
     void setFlushThreshold(int flushThreshold);
 
+    static std::string getCurrentLogfileName();
+
+    void flushBuffer();
+
+    static void flushOfstream();
+
     static bool logfileIsOpen();
+
 
 private:
     explicit Logger(LogType type);
@@ -74,19 +81,20 @@ private:
     static LogType loglevel_;
     static std::ofstream fstream_;
     static std::string logdir_;
+    static std::string currentLogfile_;
 
     std::stringstream buffer_;
     LogType type_;
-    int flushThreshold_;
+    int flushThreshold_ = 0;
 
-    int lineCount_;
-    bool nextLine_;
+    int lineCount_ = 0;
+    bool nextLine_ = true;
 
-    void flushBuffer();
 
     void writeMessage(const std::string& message);
 
     bool shouldFlush() const;
+
 
 };
 

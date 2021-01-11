@@ -1,8 +1,4 @@
 #include "log.h"
-
-#include <chrono>
-#include <ctime>
-#include <iomanip>
 #include <iostream>
 #include <memory>
 #include <cerrno>
@@ -12,6 +8,7 @@
 LogType Logger::loglevel_ = LogType::Info;
 std::string Logger::logdir_;
 std::ofstream Logger::fstream_;
+std::string Logger::currentLogfile_;
 
 Logger& Logger::Info() {
     static Logger info{LogType::Info};
@@ -28,7 +25,7 @@ Logger& Logger::Warn() {
     return warn;
 }
 
-Logger::Logger(LogType type) : type_{type}, flushThreshold_{0}, lineCount_{0}, nextLine_{true} {}
+Logger::Logger(LogType type) : type_{type} {}
 
 int Logger::getFlushThreshold() const { return flushThreshold_; }
 
@@ -104,14 +101,32 @@ std::string Logger::newLogfile() {
                            ".log.txt";
     if (logfileIsOpen()) {
         fstream_.close();
+        fstream_.clear();
     }
 
-    fstream_.open(filePath, std::ios::out);
+    if (LogUtils::fileExists(filePath)) {
+        int suffix = 2;
+        std::stringstream strm;
+        strm << filePath.substr(0, filePath.find(".log.txt")) << "(" << suffix << ")" << ".log.txt";
+        filePath = strm.str();
+
+        while (LogUtils::fileExists(filePath)) {
+            ++suffix;
+            if (suffix > 9) {
+                throw file_open_exception("Too many new logs files opened within too short of a timespan.");
+            }
+            filePath[filePath.size() - 10] = suffix + 48;
+        }
+    }
+
+    fstream_.open(filePath);
     if (!fstream_.good()) {
         fstream_.close();
+        const std::string err = strerror(errno);
         throw file_open_exception(strerror(errno));
     }
 
+    currentLogfile_ = filePath;
     return filePath;
 }
 
@@ -120,7 +135,25 @@ LogType Logger::getLoglevel() { return Logger::loglevel_; }
 void Logger::setLoglevel(LogType loglevel) { Logger::loglevel_ = loglevel; }
 
 void Logger::flushBuffer() {
-    fstream_ << buffer_.str();
+    if(!logfileIsOpen()) {
+        return;
+    }
+    const std::string content = buffer_.str();
+    fstream_ << content;
+    if (!fstream_.good()) {
+        std::cout << strerror(errno) << "\n";
+    }
     buffer_.str(std::string());
     lineCount_ = 0;
+}
+
+void Logger::flushOfstream() {
+    if(!logfileIsOpen()) {
+        return;
+    }
+    fstream_.flush();
+}
+
+std::string Logger::getCurrentLogfileName() {
+    return currentLogfile_;
 }

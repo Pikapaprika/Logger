@@ -2,10 +2,12 @@
 // Created by manuel on 03.01.21.
 //
 #include <gtest/gtest.h>
-#include "log.h"
-#include "log_utils.h"
+#include "../log.h"
 #include <sstream>
 #include <experimental/filesystem>
+#include "../log_utils.h"
+#include <chrono>
+#include <ctime>
 
 namespace fs = std::experimental::filesystem;
 const std::string test_log_dir("test_logs");
@@ -87,15 +89,78 @@ TEST_F(LogTest, logFileOpenTestShouldBeClosed) {
 }
 
 TEST_F(LogTest, shiftOperatorTestShouldWriteCorrectDatetime) {
-    std::string message("This is an Error message.");
-    std::string path = Logger::newLogfile();
-    Logger::Error() << message << "\n";
-    std::ifstream logfile(path);
-    ASSERT_TRUE(logfile.good());
+
+    const std::string fname = Logger::newLogfile();
+    const std::string errorMsg = "This is an error message.\n";
+    Logger::Error() << errorMsg;
+    const std::string date = LogUtils::getDateString("-");
+    const std::string time = LogUtils::getTimeString(":");
+    Logger::flushOfstream();
+    std::ifstream logF(fname);
+    std::string word;
+    logF >> word;
+    ASSERT_EQ(word, date);
+    logF >> word;
+    // Check for equality in hours and minutes
+    ASSERT_EQ(word.substr(0, 6), time.substr(0, 6));
+
+}
+
+TEST_F(LogTest, shiftOperatorTestShouldWriteCorrectMessages) {
+    const std::string fname = Logger::newLogfile();
+
+    const std::string errorMsg = "This is an error message.";
+    const std::string warnMsg = "This is a warning message.";
+    const std::string infoMsg = "This is an informational message.";
+    for (int i = 0; i < 60; i++) {
+        if (i < 20) {
+            Logger::Error() << errorMsg << "\n";
+        } else if (i < 40) {
+            Logger::Warn() << warnMsg << "\n";
+        } else {
+            Logger::Info() << infoMsg << "\n";
+        }
+    }
+
+    Logger::flushOfstream();
+    std::ifstream inFile(fname);
     std::string line;
-    logfile >> line;
-    std::istringstream wordStrm(line);
-    wordStrm >> line;
+    for (int i = 0; i < 60; i++) {
+        ASSERT_FALSE(inFile.eof());
+        std::getline(inFile, line);
+        if (i < 20) {
+            ASSERT_EQ(line.substr(20), "Error: " + errorMsg);
+        } else if (i < 40) {
+            ASSERT_EQ(line.substr(20), "Warning: " + warnMsg);
+        } else {
+            ASSERT_EQ(line.substr(20), "Info: " + infoMsg);
+        }
+    }
+}
+
+TEST_F(LogTest, setLogLevelShouldIgnoreInfoMessage) {
+    const std::string fname = Logger::newLogfile();
+    const std::string errorMsg = "This is an error message.";
+    const std::string warnMsg = "This is a warning message.";
+    const std::string infoMsg = "This is an informational message.";
+
+    Logger::setLoglevel(LogType::Warn);
+
+    Logger::Error() << errorMsg << "\n";
+    Logger::Warn() << warnMsg << "\n";
+    Logger::Info() << infoMsg << "\n";
+
+    Logger::flushOfstream();
+    std::ifstream inFile(fname);
+    std::string line;
+
+    std::getline(inFile, line);
+    ASSERT_EQ(line.substr(20), "Error: " + errorMsg);
+    std::getline(inFile, line);
+    ASSERT_EQ(line.substr(20), "Warning: " + warnMsg);
+    std::getline(inFile, line);
+    ASSERT_EQ(line, line);
+    ASSERT_TRUE(inFile.eof());
 }
 
 
